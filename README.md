@@ -1,4 +1,4 @@
-# ChatApp — Base sólida em ASP.NET Core + SignalR + SQL Server
+# ChatApp (ChatDy) — ASP.NET Core + SignalR + SQL Server
 
 ## Arquitetura
 
