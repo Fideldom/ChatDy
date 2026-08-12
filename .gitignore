@@ -1,0 +1,162 @@
+
+.vs/
+.vscode/
+
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Visual Studio temporary files
+*.rsuser
+*.userprefs
+
+
+# .NET / Build
+
+bin/
+obj/
+[Bb]uild/
+[Bb]uilds/
+artifacts/
+
+# Generated files
+GeneratedFiles/
+Generated/
+Debug/
+Release/
+x64/
+x86/
+
+# NuGet
+
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# ASP.NET / Web
+
+# Local development files
+appsettings.Development.json
+appsettings.Local.json
+
+# ASP.NET generated files
+wwwroot/lib/
+
+# Logs
+
+*.log
+logs/
+Log/
+Logs/
+
+# Test / Coverage
+
+TestResults/
+[Tt]est[Rr]esult*/
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+
+# Database local files
+
+*.mdf
+*.ldf
+*.ndf
+
+# SQLite local databases
+*.db
+*.db-shm
+*.db-wal
+
+# Certificates / Keys / Secrets
+
+*.pfx
+*.p12
+*.key
+*.pem
+*.cer
+
+# User secrets
+secrets.json
+
+# Entity Framework
+
+# EF generated migration artifacts
+# NÃO ignore a pasta Migrations/ se você usa EF Core
+# As migrations normalmente devem ser versionadas.
+
+# Docker
+
+*.tar
+
+# Node.js (caso o projeto use npm/React/Vite/etc.)
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build frontend
+dist/
+.vite/
+
+# JetBrains Rider / ReSharper
+
+.idea/
+*.sln.iml
+_ReSharper*/
+*.[Rr]e[Ss]harper*
+*.DotSettings.user
+
+# Windows
+
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+
+# macOS
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+
+*~
+.directory
+
+# Temporary files
+
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*.cache
+
+# Publish output
+
+publish/
+Publish/
+*.publishsettings
+
+# Local environment files
+
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# Azure / Cloud local files
+
+.azure/

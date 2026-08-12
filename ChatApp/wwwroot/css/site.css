@@ -1,0 +1,547 @@
+:root {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --primary-light: #eef0ff;
+    --bg-light: #f5f6fa;
+    --border-color: #e5e7eb;
+    --text-muted: #6b7280;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .06);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, .08);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, .15);
+    --radius: 10px;
+    --radius-lg: 16px;
+    --transition: .18s ease;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-light);
+    margin: 0;
+}
+
+/* ===== Auth ===== */
+.auth-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 400px;
+    border-radius: var(--radius-lg);
+    border: none;
+    box-shadow: var(--shadow-lg);
+    animation: fadeInUp .35s ease;
+}
+
+    .auth-card .btn-primary {
+        background: var(--primary);
+        border: none;
+        transition: background var(--transition), transform var(--transition);
+    }
+
+        .auth-card .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #ddd;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+}
+
+/* ===== Layout principal ===== */
+.app-shell {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 320px;
+    min-width: 320px;
+    background: #fff;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    transition: width var(--transition);
+}
+
+.sidebar-header {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab-pane-container {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0; /* garante que o scroll interno funciona dentro do flex column */
+}
+
+.tab-pane-item.d-none {
+    display: none !important;
+}
+
+/* Botão de voltar no header do chat (mobile) */
+#btnBackToList {
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Inputs e botões com mais destaque interativo */
+#searchInput,
+#messageInput,
+#meetingTitle,
+#meetingStart {
+    border-radius: var(--radius);
+    transition: box-shadow var(--transition), border-color var(--transition);
+}
+
+    #searchInput:focus,
+    #messageInput:focus,
+    #meetingTitle:focus,
+    #meetingStart:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, .15);
+    }
+
+.list-group-item {
+    border: none;
+    border-radius: var(--radius) !important;
+    margin-bottom: 4px;
+    transition: background var(--transition), transform var(--transition);
+    cursor: pointer;
+}
+
+    .list-group-item:hover {
+        background: var(--primary-light);
+        transform: translateX(2px);
+    }
+
+    .list-group-item.active {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+/* ===== Área de conversa ===== */
+.chat-area {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.chat-window {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.chat-header {
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+    z-index: 2;
+}
+
+    .chat-header .btn {
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background var(--transition), transform var(--transition), color var(--transition);
+    }
+
+        .chat-header .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #eef0f5;
+    scroll-behavior: smooth;
+}
+
+.msg-bubble {
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: 14px;
+    word-wrap: break-word;
+    box-shadow: var(--shadow-sm);
+    animation: bubbleIn .18s ease;
+}
+
+@keyframes bubbleIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.msg-bubble.mine {
+    align-self: flex-end;
+    background: var(--primary);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.msg-bubble.theirs {
+    align-self: flex-start;
+    background: #fff;
+    border-bottom-left-radius: 4px;
+}
+
+.msg-meta {
+    font-size: 11px;
+    opacity: .7;
+    margin-top: 2px;
+}
+
+.chat-input {
+    background: #fff;
+}
+
+    .chat-input .btn,
+    .chat-input label.btn {
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: background var(--transition), transform var(--transition);
+    }
+
+        .chat-input .btn:hover,
+        .chat-input label.btn:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+        }
+
+#btnSend {
+    background: var(--primary);
+    border: none;
+    color: #fff;
+}
+
+    #btnSend:hover {
+        background: var(--primary-dark);
+    }
+
+.d-flex.gap-20 {
+    gap: 10px;
+}
+
+/* ===== Chamadas ===== */
+.call-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .call-overlay video#remoteVideo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .call-overlay video#localVideo {
+        position: absolute;
+        bottom: 90px;
+        right: 20px;
+        width: 160px;
+        border-radius: var(--radius);
+        border: 2px solid #fff;
+        box-shadow: var(--shadow-lg);
+        transition: width var(--transition);
+    }
+
+.call-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 16px;
+}
+
+    .call-controls .btn {
+        width: 56px;
+        height: 56px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-md);
+        transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+        .call-controls .btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+
+.incoming-call-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #fff;
+    padding: 16px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 1060;
+    animation: fadeInUp .25s ease;
+}
+
+/* ===== Página de reunião em grupo ===== */
+.meeting-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #111827;
+    color: #fff;
+}
+
+.video-grid {
+    flex: 1;
+    display: grid;
+    gap: 8px;
+    padding: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+    .video-grid video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+        background: #000;
+        box-shadow: var(--shadow-md);
+    }
+
+.meeting-controls {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+    background: rgba(0, 0, 0, .4);
+}
+
+    .meeting-controls .btn {
+        width: 56px;
+        height: 56px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+        .meeting-controls .btn:hover {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+/* ===== Ícones / navegação principal (rodapé fixo da sidebar) ===== */
+.icons {
+    flex-shrink: 0; /* nunca é espremida pelo scroll da lista acima */
+    display: flex;
+    border-top: 1px solid var(--border-color);
+    justify-content: center;
+    align-items: center;
+    padding: 6px;
+    background: #fff;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, .04);
+}
+
+#sidebarTabs {
+    border: none;
+    width: 100%;
+    justify-content: space-around;
+}
+
+    #sidebarTabs .nav-link {
+        border: none;
+        border-radius: var(--radius);
+        color: var(--text-muted);
+        padding: 8px 14px;
+        font-size: 18px;
+        transition: background var(--transition), color var(--transition), transform var(--transition);
+        position: relative;
+    }
+
+        #sidebarTabs .nav-link:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        #sidebarTabs .nav-link.active {
+            background: var(--primary);
+            color: #fff;
+        }
+
+#notifBadge {
+    font-size: 10px;
+    vertical-align: top;
+    margin-left: 2px;
+}
+
+.borders {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    margin: 4px;
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Scrollbars mais discretas e profissionais */
+.tab-pane-container::-webkit-scrollbar,
+.messages-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tab-pane-container::-webkit-scrollbar-thumb,
+.messages-container::-webkit-scrollbar-thumb {
+    background: #c7c9d9;
+    border-radius: 8px;
+}
+
+.tab-pane-container::-webkit-scrollbar-track,
+.messages-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ===== Responsivo ===== */
+
+/* Tablets */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 280px;
+        min-width: 280px;
+    }
+}
+
+/* Telemóveis: sidebar ocupa tudo até selecionar um amigo */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        min-width: 100%;
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+    }
+
+    .app-shell.chat-open .sidebar {
+        display: none;
+    }
+
+    .chat-area {
+        width: 100%;
+    }
+
+    .msg-bubble {
+        max-width: 85%;
+    }
+
+    .call-overlay video#localVideo {
+        width: 110px;
+        bottom: 100px;
+        right: 12px;
+    }
+
+    .call-controls .btn,
+    .meeting-controls .btn {
+        width: 48px;
+        height: 48px;
+    }
+
+    #sidebarTabs .nav-link {
+        padding: 8px;
+        font-size: 16px;
+    }
+
+    .chat-header {
+        padding: 10px !important;
+    }
+}
+
+/* Ecrãs muito pequenos */
+@media (max-width: 420px) {
+    .avatar-sm {
+        width: 34px;
+        height: 34px;
+    }
+
+    .chat-input .btn,
+    .chat-input label.btn,
+    #btnSend {
+        width: 34px;
+        height: 34px;
+    }
+
+    .msg-bubble {
+        max-width: 90%;
+        font-size: 14px;
+    }
+}
+
+/* Respeitar preferência de movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
