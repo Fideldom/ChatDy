@@ -18,12 +18,16 @@ public enum MessageType
 
 public enum NotificationType
 {
+    // Notificações persistentes
     FriendRequest = 0,
     FriendAccepted = 1,
-    NewMessage = 2,
-    MeetingInvite = 3,
-    IncomingCall = 4,
-    MissedCall = 5
+    ChannelInvite = 2,
+
+    // Eventos temporários / atividade
+    NewMessage = 3,
+    MeetingInvite = 4,
+    IncomingCall = 5,
+    MissedCall = 6
 }
 
 public enum CallType

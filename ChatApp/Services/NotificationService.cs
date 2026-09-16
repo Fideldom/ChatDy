@@ -5,42 +5,69 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApp.Services;
 
-// Cria notificações persistentes e envia em tempo real via SignalR (grupo por utilizador).
 public class NotificationService : INotificationService
 {
     private readonly ApplicationDbContext _db;
     private readonly IHubContext<ChatHub> _hub;
 
-    public NotificationService(ApplicationDbContext db, IHubContext<ChatHub> hub)
+    public NotificationService(
+        ApplicationDbContext db,
+        IHubContext<ChatHub> hub)
     {
         _db = db;
         _hub = hub;
     }
 
-    public async Task<Notification> CreateAsync(string userId, NotificationType type, string title, string? content = null, string? relatedEntityId = null)
+    public async Task<Notification> CreateAsync(
+        string userId,
+        NotificationType type,
+        string title,
+        string? content = null,
+        string? relatedEntityId = null)
     {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            throw new ArgumentException(
+                "O usuário da notificação é obrigatório.",
+                nameof(userId));
+        }
+
         var notification = new Notification
         {
             UserId = userId,
             Type = type,
             Title = title,
             Content = content,
-            RelatedEntityId = relatedEntityId
+            RelatedEntityId = relatedEntityId,
+            IsRead = false,
+            CreatedAt = DateTime.UtcNow
         };
 
         _db.Notifications.Add(notification);
+
         await _db.SaveChangesAsync();
 
-        await _hub.Clients.Group(ChatHub.UserGroup(userId))
-            .SendAsync("ReceiveNotification", new
-            {
-                notification.Id,
-                Type = notification.Type.ToString(),
-                notification.Title,
-                notification.Content,
-                notification.RelatedEntityId,
-                notification.CreatedAt
-            });
+        // Enviar em tempo real para o usuário
+        await _hub.Clients
+            .Group(ChatHub.UserGroup(userId))
+            .SendAsync(
+                "ReceiveNotification",
+                new
+                {
+                    notification.Id,
+
+                    Type = notification.Type.ToString(),
+
+                    notification.Title,
+
+                    notification.Content,
+
+                    notification.RelatedEntityId,
+
+                    notification.IsRead,
+
+                    notification.CreatedAt
+                });
 
         return notification;
     }

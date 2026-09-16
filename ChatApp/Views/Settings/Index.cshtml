@@ -1,0 +1,1073 @@
+@model ChatApp.Models.UserSettings
+
+@{
+    ViewData["Title"] = "Configurações";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@Html.AntiForgeryToken()
+
+<link rel="stylesheet"
+      href="~/css/settings.css"
+      asp-append-version="true" />
+
+<div class="settings-page">
+
+    <div class="settings-container">
+
+        <header class="settings-header">
+
+            <div class="settings-header-icon">
+                <i class="bi bi-gear-fill"></i>
+            </div>
+
+            <div>
+                <h1>Configurações</h1>
+                <p>Personaliza a tua experiência no ChatApp.</p>
+            </div>
+
+        </header>
+
+        <div class="settings-layout">
+
+            <aside class="settings-sidebar">
+
+                <button type="button"
+                        class="settings-nav-item active"
+                        data-section="general">
+
+                    <span class="settings-nav-icon">
+                        <i class="bi bi-sliders2"></i>
+                    </span>
+
+                    <span>
+                        <strong>Geral</strong>
+                        <small>Preferências básicas</small>
+                    </span>
+
+                    <i class="bi bi-chevron-right settings-nav-arrow"></i>
+
+                </button>
+
+                <button type="button"
+                        class="settings-nav-item"
+                        data-section="account">
+
+                    <span class="settings-nav-icon">
+                        <i class="bi bi-person-circle"></i>
+                    </span>
+
+                    <span>
+                        <strong>Conta</strong>
+                        <small>Perfil e informações</small>
+                    </span>
+
+                    <i class="bi bi-chevron-right settings-nav-arrow"></i>
+
+                </button>
+
+                <button type="button"
+                        class="settings-nav-item"
+                        data-section="privacy">
+
+                    <span class="settings-nav-icon">
+                        <i class="bi bi-shield-lock"></i>
+                    </span>
+
+                    <span>
+                        <strong>Privacidade</strong>
+                        <small>Visibilidade e controlo</small>
+                    </span>
+
+                    <i class="bi bi-chevron-right settings-nav-arrow"></i>
+
+                </button>
+
+                <button type="button"
+                        class="settings-nav-item"
+                        data-section="notifications">
+
+                    <span class="settings-nav-icon">
+                        <i class="bi bi-bell"></i>
+                    </span>
+
+                    <span>
+                        <strong>Notificações</strong>
+                        <small>Alertas e sons</small>
+                    </span>
+
+                    <i class="bi bi-chevron-right settings-nav-arrow"></i>
+
+                </button>
+
+                <button type="button"
+                        class="settings-nav-item"
+                        data-section="appearance">
+
+                    <span class="settings-nav-icon">
+                        <i class="bi bi-palette"></i>
+                    </span>
+
+                    <span>
+                        <strong>Aparência</strong>
+                        <small>Tema e personalização</small>
+                    </span>
+
+                    <i class="bi bi-chevron-right settings-nav-arrow"></i>
+
+                </button>
+
+                <button type="button"
+                        class="settings-nav-item"
+                        data-section="security">
+
+                    <span class="settings-nav-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </span>
+
+                    <span>
+                        <strong>Segurança</strong>
+                        <small>Proteção da conta</small>
+                    </span>
+
+                    <i class="bi bi-chevron-right settings-nav-arrow"></i>
+
+                </button>
+
+                <button type="button"
+                        class="settings-nav-item"
+                        data-section="about">
+
+                    <span class="settings-nav-icon">
+                        <i class="bi bi-info-circle"></i>
+                    </span>
+
+                    <span>
+                        <strong>Sobre</strong>
+                        <small>Informações do ChatApp</small>
+                    </span>
+
+                    <i class="bi bi-chevron-right settings-nav-arrow"></i>
+
+                </button>
+
+            </aside>
+
+            <main class="settings-content">
+
+                <section class="settings-section active"
+                         data-content="general">
+
+                    <div class="section-heading">
+
+                        <span class="section-heading-icon">
+                            <i class="bi bi-sliders2"></i>
+                        </span>
+
+                        <div>
+                            <h2>Preferências gerais</h2>
+                            <p>Define as preferências básicas da tua conta.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="settings-card">
+
+                        <div class="setting-row">
+
+                            <div class="setting-info">
+
+                                <div class="setting-icon">
+                                    <i class="bi bi-translate"></i>
+                                </div>
+
+                                <div>
+                                    <h3>Idioma</h3>
+                                    <p>Escolhe o idioma utilizado pelo ChatApp.</p>
+                                </div>
+
+                            </div>
+
+                            <select id="settingLanguage"
+                                    class="form-select settings-select">
+
+                                <option value="pt">Português</option>
+                                <option value="en">English</option>
+                                <option value="fr">Français</option>
+                                <option value="es">Español</option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="setting-divider"></div>
+
+                        <div class="setting-row">
+
+                            <div class="setting-info">
+
+                                <div class="setting-icon">
+                                    <i class="bi bi-globe2"></i>
+                                </div>
+
+                                <div>
+                                    <h3>Fuso horário</h3>
+                                    <p>Utilizado para apresentar datas e horários.</p>
+                                </div>
+
+                            </div>
+
+                            <select id="settingTimeZone"
+                                    class="form-select settings-select">
+
+                                <option value="Africa/Luanda">
+                                    Luanda (UTC+01:00)
+                                </option>
+
+                                <option value="Africa/Johannesburg">
+                                    Johannesburg (UTC+02:00)
+                                </option>
+
+                                <option value="Europe/London">
+                                    Londres
+                                </option>
+
+                                <option value="Europe/Lisbon">
+                                    Lisboa
+                                </option>
+
+                                <option value="America/Sao_Paulo">
+                                    São Paulo
+                                </option>
+
+                                <option value="America/New_York">
+                                    Nova Iorque
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="setting-divider"></div>
+
+                        <div class="setting-row">
+
+                            <div class="setting-info">
+
+                                <div class="setting-icon">
+                                    <i class="bi bi-clock"></i>
+                                </div>
+
+                                <div>
+                                    <h3>Formato da hora</h3>
+                                    <p>Escolhe como os horários serão apresentados.</p>
+                                </div>
+
+                            </div>
+
+                            <select id="settingTimeFormat"
+                                    class="form-select settings-select">
+
+                                <option value="24h">24 horas</option>
+                                <option value="12h">12 horas</option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div class="settings-actions">
+
+                        <button id="btnSaveSettings" type="button" class="btn-save-settings">
+
+                            <i class="bi bi-check"></i>
+
+                            <span>Guardar alterações</span>
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+<section class="settings-section" data-content="account">
+
+    <div class="section-heading">
+
+        <span class="section-heading-icon">
+            <i class="bi bi-person-circle"></i>
+        </span>
+
+        <div>
+            <h2>Conta e perfil</h2>
+            <p>Gere as tuas informações pessoais e a tua fotografia.</p>
+        </div>
+
+    </div>
+
+    <!-- PERFIL -->
+    <div class="profile-card">
+
+        <div class="profile-card-header">
+
+            <div class="profile-avatar-wrapper">
+
+                <div class="profile-avatar"
+                     id="profileAvatar">
+
+                    <span id="profileAvatarInitial">
+                        U
+                    </span>
+
+                    <img id="profileAvatarImage"
+                         src=""
+                         alt="Foto de perfil"
+                         hidden />
+
+                </div>
+
+                <button type="button"
+                        id="btnChangeProfilePhoto"
+                        class="profile-avatar-edit"
+                        title="Alterar foto">
+
+                    <i class="bi bi-camera-fill"></i>
+
+                </button>
+
+                <input id="profilePhotoInput"
+                       type="file"
+                       accept="image/jpeg,image/png,image/webp"
+                       hidden />
+
+            </div>
+
+            <div class="profile-summary">
+
+                <h3 id="profileDisplayName">
+                    A carregar...
+                </h3>
+
+                <p id="profileDisplayEmail">
+                    A carregar...
+                </p>
+
+                <span class="profile-status">
+                    <span class="profile-status-dot"></span>
+                    Conta ativa
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="profile-photo-actions">
+
+            <button type="button"
+                    id="btnSelectProfilePhoto"
+                    class="btn-profile-secondary">
+
+                <i class="bi bi-image"></i>
+                <span>Alterar fotografia</span>
+
+            </button>
+
+            <span class="profile-photo-help">
+                JPG, PNG ou WebP · máximo 5 MB
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- INFORMAÇÕES PESSOAIS -->
+    <div class="settings-card profile-form-card">
+
+        <div class="profile-form-header">
+
+            <div>
+                <h3>Informações pessoais</h3>
+                <p>Estas informações fazem parte do teu perfil.</p>
+            </div>
+
+        </div>
+
+        <div class="profile-form-grid">
+
+            <div class="profile-field">
+
+                <label for="profileFullName">
+                    Nome completo
+                </label>
+
+                <div class="profile-input-wrapper">
+
+                    <i class="bi bi-person"></i>
+
+                    <input id="profileFullName"
+                           type="text"
+                           class="profile-input"
+                           placeholder="O teu nome completo"
+                           maxlength="100"
+                           autocomplete="name" />
+
+                </div>
+
+                <small>
+                    O nome apresentado no ChatApp.
+                </small>
+
+            </div>
+
+
+            <div class="profile-field">
+
+                <label for="profileEmail">
+                    E-mail
+                </label>
+
+                <div class="profile-input-wrapper profile-input-disabled">
+
+                    <i class="bi bi-envelope"></i>
+
+                    <input id="profileEmail"
+                           type="email"
+                           class="profile-input"
+                           placeholder="O teu e-mail"
+                           readonly
+                           disabled />
+
+                    <span class="profile-field-lock">
+                        <i class="bi bi-lock-fill"></i>
+                    </span>
+
+                </div>
+
+                <small>
+                    O e-mail será alterado através da área de segurança.
+                </small>
+
+            </div>
+
+            <div class="profile-field">
+
+                <label for="profileUserName">
+                    Nome de utilizador
+                </label>
+
+                <div class="profile-input-wrapper profile-input-disabled">
+
+                    <i class="bi bi-at"></i>
+
+                    <input id="profileUserName"
+                           type="text"
+                           class="profile-input"
+                           placeholder="username"
+                           readonly
+                           disabled />
+
+                    <span class="profile-field-lock">
+                        <i class="bi bi-lock-fill"></i>
+                    </span>
+
+                </div>
+
+                <small>
+                    Identificador atual da tua conta.
+                </small>
+
+            </div>
+
+
+            <div class="profile-field">
+
+                <label for="profilePhone">
+                    Número de telefone
+                </label>
+
+                <div class="profile-input-wrapper">
+
+                    <i class="bi bi-telephone"></i>
+
+                    <input id="profilePhone"
+                           type="tel"
+                           class="profile-input"
+                           placeholder="+244 9XX XXX XXX"
+                           maxlength="30"
+                           autocomplete="tel" />
+
+                </div>
+
+                <small>
+                    Opcional. Utilizado para identificação da conta.
+                </small>
+
+            </div>
+
+        </div>
+
+        <div class="profile-form-actions">
+
+            <button type="button" id="btnCancelProfile" class="btn-profile-cancel">
+                Cancelar
+            </button>
+
+            <button type="button" id="btnSaveProfile" class="btn-profile-save">
+
+                <i class="bi bi-check"></i>
+
+                <span>Guardar alterações</span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- INFORMAÇÕES DA CONTA -->
+    <div class="settings-card account-info-card">
+
+        <div class="account-info-heading">
+
+            <div class="account-info-icon">
+                <i class="bi bi-person-vcard"></i>
+            </div>
+
+            <div>
+                <h3>Informações da conta</h3>
+                <p>Informações técnicas da tua conta ChatApp.</p>
+            </div>
+
+        </div>
+
+        <div class="account-info-list">
+
+            <div class="account-info-row">
+
+                <span>
+                    <i class="bi bi-calendar3"></i>
+                    Conta criada
+                </span>
+
+                <strong id="profileCreatedAt">
+                    —
+                </strong>
+
+            </div>
+
+            <div class="account-info-row">
+
+                <span>
+                    <i class="bi bi-shield-check"></i>
+                    Estado
+                </span>
+
+                <strong class="account-active-text">
+                    Ativa
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section data-content="privacy" class="settings-section">
+
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">
+                <i class="bi bi-shield-lock"></i>
+                Privacidade
+            </span>
+
+            <h2>Controla a tua privacidade</h2>
+
+            <p>
+                Escolhe quem pode encontrar-te, contactar-te
+                e visualizar as tuas informações.
+            </p>
+        </div>
+    </div>
+
+
+    <!-- PERFIL -->
+
+    <div class="privacy-card">
+
+        <div class="privacy-card-header">
+            <div class="privacy-card-icon">
+                <i class="bi bi-person-badge"></i>
+            </div>
+
+            <div>
+                <h3>Perfil</h3>
+                <p>Controla quem pode visualizar as informações do teu perfil.</p>
+            </div>
+        </div>
+
+
+        <div class="privacy-option">
+
+            <div class="privacy-option-info">
+                <strong>Quem pode ver o meu perfil?</strong>
+
+                <span>
+                    Define quem pode visualizar o teu perfil.
+                </span>
+            </div>
+
+            <select id="privacyProfileVisibility"
+                    class="settings-select">
+
+                <option value="everyone">Todos</option>
+                <option value="friends">Apenas amigos</option>
+                <option value="nobody">Ninguém</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <!-- PRESENÇA -->
+
+    <div class="privacy-card">
+
+        <div class="privacy-card-header">
+
+            <div class="privacy-card-icon">
+                <i class="bi bi-circle-fill"></i>
+            </div>
+
+            <div>
+                <h3>Presença</h3>
+                <p>Controla as informações relacionadas à tua presença.</p>
+            </div>
+
+        </div>
+
+
+        <div class="privacy-option">
+
+            <div class="privacy-option-info">
+
+                <strong>
+                    Quem pode ver o meu estado online?
+                </strong>
+
+                <span>
+                    Controla quem pode saber quando estás online.
+                </span>
+
+            </div>
+
+            <select id="privacyOnlineStatus"
+                    class="settings-select">
+
+                <option value="everyone">Todos</option>
+                <option value="friends">Apenas amigos</option>
+                <option value="nobody">Ninguém</option>
+
+            </select>
+
+        </div>
+
+
+        <div class="privacy-option">
+
+            <div class="privacy-option-info">
+
+                <strong>
+                    Quem pode ver o meu último acesso?
+                </strong>
+
+                <span>
+                    Controla quem pode visualizar quando estiveste online pela última vez.
+                </span>
+
+            </div>
+
+            <select id="privacyLastSeen"
+                    class="settings-select">
+
+                <option value="everyone">Todos</option>
+                <option value="friends">Apenas amigos</option>
+                <option value="nobody">Ninguém</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <!-- CONTACTO -->
+
+    <div class="privacy-card">
+
+        <div class="privacy-card-header">
+
+            <div class="privacy-card-icon">
+                <i class="bi bi-chat-dots"></i>
+            </div>
+
+            <div>
+                <h3>Contacto</h3>
+                <p>Controla quem pode entrar em contacto contigo.</p>
+            </div>
+
+        </div>
+
+
+        <div class="privacy-option">
+
+            <div class="privacy-option-info">
+
+                <strong>
+                    Quem pode enviar-me mensagens?
+                </strong>
+
+                <span>
+                    Define quem pode iniciar uma conversa contigo.
+                </span>
+
+            </div>
+
+            <select id="privacyMessages"
+                    class="settings-select">
+
+                <option value="everyone">Todos</option>
+                <option value="friends">Apenas amigos</option>
+                <option value="nobody">Ninguém</option>
+
+            </select>
+
+        </div>
+
+
+        <div class="privacy-option">
+
+            <div class="privacy-option-info">
+
+                <strong>
+                    Quem pode ligar-me?
+                </strong>
+
+                <span>
+                    Define quem pode iniciar chamadas contigo.
+                </span>
+
+            </div>
+
+            <select id="privacyCalls"
+                    class="settings-select">
+
+                <option value="everyone">Todos</option>
+                <option value="friends">Apenas amigos</option>
+                <option value="nobody">Ninguém</option>
+
+            </select>
+
+        </div>
+
+
+        <div class="privacy-option">
+
+            <div class="privacy-option-info">
+
+                <strong>
+                    Quem pode enviar pedidos de amizade?
+                </strong>
+
+                <span>
+                    Controla quem pode enviar-te uma solicitação de amizade.
+                </span>
+
+            </div>
+
+            <select id="privacyFriendRequests"
+                    class="settings-select">
+
+                <option value="everyone">Todos</option>
+                <option value="nobody">Ninguém</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <!-- PESQUISA -->
+
+    <div class="privacy-card">
+
+        <div class="privacy-card-header">
+
+            <div class="privacy-card-icon">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <div>
+                <h3>Pesquisa</h3>
+
+                <p>
+                    Decide se o teu perfil pode aparecer nas pesquisas.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <label class="privacy-toggle-option">
+
+            <div class="privacy-toggle-info">
+
+                <strong>
+                    Aparecer nos resultados de pesquisa
+                </strong>
+
+                <span>
+                    Quando desativado, outros utilizadores não poderão
+                    encontrar o teu perfil através da pesquisa.
+                </span>
+
+            </div>
+
+
+            <div class="privacy-switch">
+
+                <input type="checkbox"
+                       id="privacyDiscoverable">
+
+                <span class="privacy-slider"></span>
+
+            </div>
+
+        </label>
+
+    </div>
+
+
+    <!-- AÇÕES -->
+
+    <div class="privacy-actions">
+
+        <button type="button"
+                id="btnSavePrivacy"
+                class="btn-profile-save">
+
+            <span class="privacy-save-content">
+
+                <i class="bi bi-check2-circle"></i>
+
+                <span>Guardar alterações</span>
+
+            </span>
+
+            <span class="privacy-save-loading d-none">
+
+                <span class="spinner-border spinner-border-sm"
+                      aria-hidden="true"></span>
+
+                A guardar...
+
+            </span>
+
+        </button>
+
+    </div>
+
+</section>
+
+
+                <section class="settings-section"
+                         data-content="notifications">
+
+                    <div class="section-heading">
+
+                        <span class="section-heading-icon">
+                            <i class="bi bi-bell"></i>
+                        </span>
+
+                        <div>
+                            <h2>Notificações</h2>
+                            <p>Controla como recebes os teus alertas.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="coming-soon-card">
+
+                        <div class="coming-soon-icon">
+                            <i class="bi bi-bell-slash"></i>
+                        </div>
+
+                        <h3>Notificações</h3>
+
+                        <p>
+                            As opções de mensagens, chamadas, reuniões,
+                            pedidos de amizade, sons e notificações do
+                            navegador serão adicionadas posteriormente.
+                        </p>
+
+                    </div>
+
+                </section>
+
+                <section class="settings-section"
+                         data-content="appearance">
+
+                    <div class="section-heading">
+
+                        <span class="section-heading-icon">
+                            <i class="bi bi-palette"></i>
+                        </span>
+
+                        <div>
+                            <h2>Aparência</h2>
+                            <p>Personaliza o visual do ChatApp.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="coming-soon-card">
+
+                        <div class="coming-soon-icon">
+                            <i class="bi bi-stars"></i>
+                        </div>
+
+                        <h3>Personalização visual</h3>
+
+                        <p>
+                            Temas claro, escuro e automático, paletas de
+                            cores, cor principal, tamanho da interface,
+                            densidade e acessibilidade serão adicionados
+                            na próxima fase.
+                        </p>
+
+                    </div>
+
+                </section>
+
+                <section class="settings-section"
+                         data-content="security">
+
+                    <div class="section-heading">
+
+                        <span class="section-heading-icon">
+                            <i class="bi bi-shield-check"></i>
+                        </span>
+
+                        <div>
+                            <h2>Segurança</h2>
+                            <p>Protege a tua conta e as tuas sessões.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="coming-soon-card">
+
+                        <div class="coming-soon-icon">
+                            <i class="bi bi-lock"></i>
+                        </div>
+
+                        <h3>Segurança da conta</h3>
+
+                        <p>
+                            Palavra-passe, sessões ativas, autenticação
+                            em dois fatores e alertas de login serão
+                            adicionados numa fase posterior.
+                        </p>
+
+                    </div>
+
+                </section>
+
+                <section class="settings-section"
+                         data-content="about">
+
+                    <div class="section-heading">
+
+                        <span class="section-heading-icon">
+                            <i class="bi bi-info-circle"></i>
+                        </span>
+
+                        <div>
+                            <h2>Sobre</h2>
+                            <p>Informações sobre a plataforma.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="about-card">
+
+                        <div class="about-logo">
+                            <i class="bi bi-chat-dots-fill"></i>
+                        </div>
+
+                        <h2>ChatApp</h2>
+
+                        <p class="about-version">
+                            Plataforma de comunicação
+                        </p>
+
+                        <div class="about-items">
+
+                            <div>
+                                <span>Aplicação</span>
+                                <strong>ChatApp</strong>
+                            </div>
+
+                            <div>
+                                <span>Versão</span>
+                                <strong>1.0</strong>
+                            </div>
+
+                            <div>
+                                <span>Plataforma</span>
+                                <strong>Web</strong>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <div id="settingsToast"
+                     class="settings-toast"
+                     role="status"
+                     aria-live="polite">
+
+                    <i id="settingsToastIcon"
+                       class="bi bi-check-circle-fill"></i>
+
+                    <span id="settingsToastMessage">
+                        Configurações atualizadas.
+                    </span>
+
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script src="~/js/settings.js"
+            asp-append-version="true"></script>
+}

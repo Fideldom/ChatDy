@@ -177,6 +177,110 @@ namespace ChatApp.Migrations
                     b.ToTable("CallParticipants");
                 });
 
+            modelBuilder.Entity("ChatApp.Models.Channel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PhotoUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsPrivate", "CreatedAt");
+
+                    b.HasIndex("OwnerId", "CreatedAt");
+
+                    b.ToTable("Channels");
+                });
+
+            modelBuilder.Entity("ChatApp.Models.ChannelInvite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChannelId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InvitedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("InvitedUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("RespondedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvitedById");
+
+                    b.HasIndex("ChannelId", "Status", "CreatedAt");
+
+                    b.HasIndex("InvitedUserId", "Status", "CreatedAt");
+
+                    b.ToTable("ChannelInvites");
+                });
+
+            modelBuilder.Entity("ChatApp.Models.ChannelMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChannelId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChannelId", "UserId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ChannelId");
+
+                    b.ToTable("ChannelMembers");
+                });
+
             modelBuilder.Entity("ChatApp.Models.Friendship", b =>
                 {
                     b.Property<int>("Id")
@@ -383,6 +487,169 @@ namespace ChatApp.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("ChatApp.Models.Post", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AuthorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("ChannelId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("ChannelId", "CreatedAt");
+
+                    b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("ChatApp.Models.PostLike", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("PostId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("PostLikes");
+                });
+
+            modelBuilder.Entity("ChatApp.Models.PostShare", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("PostId", "CreatedAt");
+
+                    b.ToTable("PostShares");
+                });
+
+            modelBuilder.Entity("ChatApp.Models.UserSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CallPrivacy")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Discoverable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FriendRequestPrivacy")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("LastSeenVisibility")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("MessagePrivacy")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("OnlineStatusVisibility")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ProfileVisibility")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TimeFormat")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserSettings");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -560,6 +827,63 @@ namespace ChatApp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ChatApp.Models.Channel", b =>
+                {
+                    b.HasOne("ChatApp.Models.ApplicationUser", "Owner")
+                        .WithMany("OwnedChannels")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("ChatApp.Models.ChannelInvite", b =>
+                {
+                    b.HasOne("ChatApp.Models.Channel", "Channel")
+                        .WithMany("Invites")
+                        .HasForeignKey("ChannelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChatApp.Models.ApplicationUser", "InvitedBy")
+                        .WithMany("ChannelInvitesSent")
+                        .HasForeignKey("InvitedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ChatApp.Models.ApplicationUser", "InvitedUser")
+                        .WithMany("ChannelInvitesReceived")
+                        .HasForeignKey("InvitedUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Channel");
+
+                    b.Navigation("InvitedBy");
+
+                    b.Navigation("InvitedUser");
+                });
+
+            modelBuilder.Entity("ChatApp.Models.ChannelMember", b =>
+                {
+                    b.HasOne("ChatApp.Models.Channel", "Channel")
+                        .WithMany("Members")
+                        .HasForeignKey("ChannelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChatApp.Models.ApplicationUser", "User")
+                        .WithMany("ChannelMemberships")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Channel");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ChatApp.Models.Friendship", b =>
                 {
                     b.HasOne("ChatApp.Models.ApplicationUser", "Addressee")
@@ -639,6 +963,74 @@ namespace ChatApp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ChatApp.Models.Post", b =>
+                {
+                    b.HasOne("ChatApp.Models.ApplicationUser", "Author")
+                        .WithMany("Posts")
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ChatApp.Models.Channel", "Channel")
+                        .WithMany("Posts")
+                        .HasForeignKey("ChannelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Channel");
+                });
+
+            modelBuilder.Entity("ChatApp.Models.PostLike", b =>
+                {
+                    b.HasOne("ChatApp.Models.Post", "Post")
+                        .WithMany("Likes")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChatApp.Models.ApplicationUser", "User")
+                        .WithMany("PostLikes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ChatApp.Models.PostShare", b =>
+                {
+                    b.HasOne("ChatApp.Models.Post", "Post")
+                        .WithMany("Shares")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChatApp.Models.ApplicationUser", "User")
+                        .WithMany("PostShares")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ChatApp.Models.UserSettings", b =>
+                {
+                    b.HasOne("ChatApp.Models.ApplicationUser", "User")
+                        .WithOne("Settings")
+                        .HasForeignKey("ChatApp.Models.UserSettings", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -692,6 +1084,12 @@ namespace ChatApp.Migrations
 
             modelBuilder.Entity("ChatApp.Models.ApplicationUser", b =>
                 {
+                    b.Navigation("ChannelInvitesReceived");
+
+                    b.Navigation("ChannelInvitesSent");
+
+                    b.Navigation("ChannelMemberships");
+
                     b.Navigation("FriendshipsReceived");
 
                     b.Navigation("FriendshipsRequested");
@@ -701,6 +1099,16 @@ namespace ChatApp.Migrations
                     b.Navigation("MessagesSent");
 
                     b.Navigation("Notifications");
+
+                    b.Navigation("OwnedChannels");
+
+                    b.Navigation("PostLikes");
+
+                    b.Navigation("PostShares");
+
+                    b.Navigation("Posts");
+
+                    b.Navigation("Settings");
                 });
 
             modelBuilder.Entity("ChatApp.Models.Call", b =>
@@ -708,9 +1116,25 @@ namespace ChatApp.Migrations
                     b.Navigation("Participants");
                 });
 
+            modelBuilder.Entity("ChatApp.Models.Channel", b =>
+                {
+                    b.Navigation("Invites");
+
+                    b.Navigation("Members");
+
+                    b.Navigation("Posts");
+                });
+
             modelBuilder.Entity("ChatApp.Models.Meeting", b =>
                 {
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("ChatApp.Models.Post", b =>
+                {
+                    b.Navigation("Likes");
+
+                    b.Navigation("Shares");
                 });
 #pragma warning restore 612, 618
         }

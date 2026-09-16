@@ -1,52 +1,305 @@
+using ChatApp.Models;
+using ChatApp.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApp.Hubs;
 
-// Hub de sinalização WebRTC: não transporta áudio/vídeo (isso vai peer-to-peer),
-// apenas troca as mensagens de sinalização (offer/answer/ICE) entre os participantes,
-// tanto para chamadas 1-para-1 como para salas de reunião (grupo).
 [Authorize]
 public class CallHub : Hub
 {
-    private string UserId => Context.UserIdentifier ?? Context.User!.FindFirst("sub")?.Value ?? string.Empty;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IPrivacyService _privacy;
 
-    public static string CallGroup(string roomId) => $"call:{roomId}";
-
-    // ---- Chamada direta 1-para-1 ----
-    public async Task CallUser(string receiverId, string callId, string type)
+    public CallHub(
+        UserManager<ApplicationUser> userManager,
+        IPrivacyService privacy)
     {
-        await Clients.Group(ChatHub.UserGroup(receiverId))
-            .SendAsync("IncomingCall", callId, UserId, type);
+        _userManager = userManager;
+        _privacy = privacy;
     }
 
-    public async Task AnswerCall(string callerId, string callId, bool accepted)
+    // ID DO UTILIZADOR AUTENTICADO
+    private string UserId =>
+        Context.UserIdentifier
+        ?? Context.User?.FindFirst("sub")?.Value
+        ?? Context.User?.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier
+        )?.Value
+        ?? string.Empty;
+
+    // GRUPO DO UTILIZADOR
+    public static string UserGroup(
+        string userId)
     {
-        await Clients.Group(ChatHub.UserGroup(callerId))
-            .SendAsync("CallAnswered", callId, accepted);
+        return $"call-user:{userId}";
     }
 
-    public async Task EndCall(string otherUserId, string callId)
+    // GRUPO DA CHAMADA
+    public static string CallGroup(
+        string roomId)
     {
-        await Clients.Group(ChatHub.UserGroup(otherUserId)).SendAsync("CallEnded", callId);
+        return $"call:{roomId}";
     }
 
-    // ---- Salas (reuniões em grupo ou chamada 1-para-1 já aceite) ----
-    public async Task JoinRoom(string roomId)
+    // CONECTAR
+    public override async Task OnConnectedAsync()
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, CallGroup(roomId));
-        await Clients.OthersInGroup(CallGroup(roomId)).SendAsync("PeerJoined", UserId, Context.ConnectionId);
+        if (!string.IsNullOrWhiteSpace(
+            UserId))
+        {
+            await Groups.AddToGroupAsync(
+                Context.ConnectionId,
+                UserGroup(UserId));
+
+            Console.WriteLine(
+                $"[CallHub] Conectado: " +
+                $"{UserId} | " +
+                $"{Context.ConnectionId}"
+            );
+        }
+
+        await base.OnConnectedAsync();
     }
 
-    public async Task LeaveRoom(string roomId)
+    // DESCONECTAR
+    public override async Task OnDisconnectedAsync(
+        Exception? exception)
     {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, CallGroup(roomId));
-        await Clients.OthersInGroup(CallGroup(roomId)).SendAsync("PeerLeft", UserId, Context.ConnectionId);
+        if (!string.IsNullOrWhiteSpace(
+            UserId))
+        {
+            await Groups.RemoveFromGroupAsync(
+                Context.ConnectionId,
+                UserGroup(UserId));
+
+            Console.WriteLine(
+                $"[CallHub] Desconectado: {UserId}"
+            );
+        }
+
+        await base.OnDisconnectedAsync(
+            exception);
     }
 
-    // WebRTC signaling: offer / answer / ICE candidates, roteado ao peer específico via connectionId
-    public async Task SendSignal(string targetConnectionId, string signalType, string payload)
+    // INICIAR CHAMADA
+    public async Task CallUser(
+        string receiverId,
+        string callId,
+        string type)
     {
-        await Clients.Client(targetConnectionId).SendAsync("ReceiveSignal", Context.ConnectionId, UserId, signalType, payload);
+        if (string.IsNullOrWhiteSpace(
+            receiverId))
+        {
+            throw new HubException(
+                "Utilizador destinatário inválido.");
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            callId))
+        {
+            throw new HubException(
+                "ID da chamada inválido.");
+        }
+
+        if (type != "audio" &&
+            type != "video")
+        {
+            throw new HubException(
+                "Tipo de chamada inválido.");
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            UserId))
+        {
+            throw new HubException(
+                "Utilizador não autenticado.");
+        }
+
+        // VERIFICAR PRIVACIDADE DE CHAMADAS
+        var canCall =
+            await _privacy.CanCallAsync(
+                UserId,
+                receiverId);
+
+        if (!canCall)
+        {
+            throw new HubException(
+                "Este utilizador não permite receber chamadas de si.");
+        }
+
+        var caller =
+            await _userManager.FindByIdAsync(
+                UserId);
+
+        if (caller == null)
+        {
+            throw new HubException(
+                "Utilizador da chamada não encontrado.");
+        }
+
+        var callerName =
+            string.IsNullOrWhiteSpace(
+                caller.FullName)
+                ? "Utilizador"
+                : caller.FullName;
+
+        var callerPhoto =
+            string.IsNullOrWhiteSpace(
+                caller.ProfilePhotoUrl)
+                ? "/images/default-avatar.png"
+                : caller.ProfilePhotoUrl;
+
+        Console.WriteLine(
+            $"[CallHub] {callerName} -> " +
+            $"{receiverId} | {type}"
+        );
+
+        await Clients
+            .Group(UserGroup(receiverId))
+            .SendAsync(
+                "IncomingCall",
+                callId,
+                UserId,
+                callerName,
+                callerPhoto,
+                type);
+    }
+
+    // RESPONDER À CHAMADA
+    public async Task AnswerCall(
+        string callerId,
+        string callId,
+        bool accepted)
+    {
+        if (string.IsNullOrWhiteSpace(
+            callerId))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            callId))
+        {
+            return;
+        }
+
+        await Clients
+            .Group(UserGroup(callerId))
+            .SendAsync(
+                "CallAnswered",
+                callId,
+                accepted);
+    }
+
+    // TERMINAR CHAMADA
+    public async Task EndCall(
+        string otherUserId,
+        string callId)
+    {
+        if (string.IsNullOrWhiteSpace(
+            otherUserId))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            callId))
+        {
+            return;
+        }
+
+        await Clients
+            .Group(UserGroup(otherUserId))
+            .SendAsync(
+                "CallEnded",
+                callId);
+    }
+
+    // ENTRAR NA SALA WEBRTC
+    public async Task JoinRoom(
+        string roomId)
+    {
+        if (string.IsNullOrWhiteSpace(
+            roomId))
+        {
+            throw new HubException(
+                "Sala inválida.");
+        }
+
+        await Groups.AddToGroupAsync(
+            Context.ConnectionId,
+            CallGroup(roomId));
+
+        Console.WriteLine(
+            $"[CallHub] {UserId} " +
+            $"entrou na sala {roomId}"
+        );
+
+        await Clients
+            .OthersInGroup(
+                CallGroup(roomId))
+            .SendAsync(
+                "PeerJoined",
+                UserId,
+                Context.ConnectionId);
+    }
+
+    // SAIR DA SALA WEBRTC
+    public async Task LeaveRoom(
+        string roomId)
+    {
+        if (string.IsNullOrWhiteSpace(
+            roomId))
+        {
+            return;
+        }
+
+        await Groups.RemoveFromGroupAsync(
+            Context.ConnectionId,
+            CallGroup(roomId));
+
+        await Clients
+            .OthersInGroup(
+                CallGroup(roomId))
+            .SendAsync(
+                "PeerLeft",
+                UserId,
+                Context.ConnectionId);
+    }
+
+    // SIGNAL WEBRTC
+    public async Task SendSignal(
+        string targetConnectionId,
+        string signalType,
+        string payload)
+    {
+        if (string.IsNullOrWhiteSpace(
+            targetConnectionId))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            signalType))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            payload))
+        {
+            return;
+        }
+
+        await Clients
+            .Client(targetConnectionId)
+            .SendAsync(
+                "ReceiveSignal",
+                Context.ConnectionId,
+                UserId,
+                signalType,
+                payload);
     }
 }

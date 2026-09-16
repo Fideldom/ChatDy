@@ -1,316 +1,716 @@
+@using Microsoft.AspNetCore.Identity
+@using ChatApp.Models
+
+@inject UserManager<ApplicationUser> UserManager
+
 @{
-ViewData["Title"] = "Canais";
-Layout = null;
+    ViewData["Title"] = "Canais";
+    Layout = "_Layout";
+
+    var currentUser = await UserManager.GetUserAsync(User);
+
+    var currentUserName = currentUser?.FullName ?? currentUser?.UserName ?? "Usuário";
+
+    var currentUserPhoto = string.IsNullOrWhiteSpace(currentUser?.ProfilePhotoUrl)
+        ? "/images/default-avatar.png"
+        : currentUser.ProfilePhotoUrl;
 }
 
-<!DOCTYPE html>
+@section Styles {
 
-<html lang="pt">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet"
+          href="~/css/channel.css"
+          asp-append-version="true" />
 
-<title>Canais - ChatApp</title>
+    <style>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-<link rel="stylesheet" href="~/css/channel.css" />
+        .avatar,
+        .channel-avatar,
+        .channel-card-photo,
+        .member-avatar,
+        .invite-user-avatar,
+        .post-author-avatar {
+            width: 42px !important;
+            height: 42px !important;
+            min-width: 42px !important;
+            min-height: 42px !important;
+            max-width: 42px !important;
+            max-height: 42px !important;
+            object-fit: cover !important;
+            border-radius: 50% !important;
+            display: block;
+            overflow: hidden;
+        }
 
-</head>
+        .channel-avatar {
+            width: 48px !important;
+            height: 48px !important;
+            min-width: 48px !important;
+            min-height: 48px !important;
+            max-width: 48px !important;
+            max-height: 48px !important;
+        }
 
-<body>
+        .channel-card-photo {
+            width: 48px !important;
+            height: 48px !important;
+            min-width: 48px !important;
+            min-height: 48px !important;
+            max-width: 48px !important;
+            max-height: 48px !important;
+        }
+
+        .member-avatar,
+        .invite-user-avatar {
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            max-width: 40px !important;
+            max-height: 40px !important;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        .channel-sidebar-user-photo {
+            width: 42px !important;
+            height: 42px !important;
+            min-width: 42px !important;
+            min-height: 42px !important;
+            max-width: 42px !important;
+            max-height: 42px !important;
+            object-fit: cover !important;
+            border-radius: 50% !important;
+            flex-shrink: 0;
+        }
+
+        .channel-global-navigation {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px;
+            border-bottom: 1px solid var(--channel-border, #e5e7eb);
+        }
+
+        .channel-global-navigation a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: inherit;
+            transition: background-color .2s ease, color .2s ease;
+        }
+
+        .channel-global-navigation a:hover {
+            background: var(--channel-surface-soft, #f8fafc);
+        }
+
+        .channel-global-navigation a.active {
+            background: #eef2ff;
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        .channel-global-navigation i {
+            font-size: 18px;
+            width: 22px;
+            text-align: center;
+        }
+
+        @@media (max-width: 768px) {
+
+            .channel-global-navigation {
+                flex-direction: row;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .channel-global-navigation a {
+                width: auto;
+                flex: 0 0 auto;
+            }
+
+            .channel-global-navigation span {
+                display: none;
+            }
+        }
+
+    </style>
+}
 
 <div class="channel-app">
 
-<!--  SIDEBAR -->
-<aside class="channel-sidebar">
+    <aside class="channel-sidebar">
 
-    <!-- Perfil -->
-    <div class="channel-sidebar-header">
+        <div class="channel-sidebar-header">
 
-        <div class="d-flex align-items-center gap-2">
-            <img id="currentUserPhoto"
-                 src="/images/default-avatar.png"
-                 class="avatar"
-                 alt="Perfil" />
+            <div class="d-flex align-items-center gap-2">
 
-            <div>
-                <strong id="currentUserName">Eu</strong>
-                <small class="d-block text-muted">Canais</small>
-            </div>
-        </div>
-
-        <a href="/Home/Index"
-           class="btn btn-sm btn-outline-secondary"
-           title="Voltar para o chat">
-            <i class="bi bi-chat-dots"></i>
-        </a>
-
-    </div>
-
-
-    <!-- Pesquisa -->
-    <div class="channel-search p-2">
-
-        <div class="input-group">
-
-            <span class="input-group-text">
-                <i class="bi bi-search"></i>
-            </span>
-
-            <input id="channelSearchInput"
-                   type="text"
-                   class="form-control"
-                   placeholder="Pesquisar canais..." />
-
-        </div>
-
-    </div>
-
-
-    <!-- Botão criar -->
-    <div class="p-2">
-
-        <button id="btnNewChannel"
-                class="btn btn-primary w-100">
-
-            <i class="bi bi-plus-circle me-1"></i>
-
-            Criar canal
-
-        </button>
-
-    </div>
-
-
-    <!-- Lista -->
-    <div class="channel-list-container">
-
-        <div class="px-3 py-2">
-
-            <small class="text-uppercase text-muted fw-bold">
-                Meus canais
-            </small>
-
-        </div>
-
-        <div id="myChannelsList"
-             class="channel-list">
-
-            <!-- preenchido pelo JS -->
-
-        </div>
-
-
-        <div class="px-3 py-2 mt-2">
-
-            <small class="text-uppercase text-muted fw-bold">
-                Descobrir canais
-            </small>
-
-        </div>
-
-        <div id="discoverChannelsList"
-             class="channel-list">
-
-            <!-- preenchido pelo JS -->
-
-        </div>
-
-    </div>
-
-</aside>
-
-
-<!-- =========================================================
-     ÁREA PRINCIPAL
-     ========================================================= -->
-<main class="channel-main">
-
-    <!-- Estado vazio -->
-    <section id="channelEmpty"
-             class="channel-empty">
-
-        <div class="empty-icon">
-
-            <i class="bi bi-broadcast"></i>
-
-        </div>
-
-        <h3>Bem-vindo aos canais</h3>
-
-        <p class="text-muted">
-            Selecione um canal para visualizar as publicações.
-        </p>
-
-        <button id="btnEmptyCreateChannel"
-                class="btn btn-primary">
-
-            <i class="bi bi-plus-circle me-1"></i>
-
-            Criar canal
-
-        </button>
-
-    </section>
-
-
-    <!-- =====================================================
-         CANAL ABERTO
-         ===================================================== -->
-    <section id="channelView"
-             class="channel-view d-none">
-
-
-        <!-- Header -->
-        <header class="channel-header">
-
-            <div class="d-flex align-items-center gap-3">
-
-                <button id="btnMobileBack"
-                        class="btn btn-sm btn-outline-secondary d-lg-none">
-
-                    <i class="bi bi-arrow-left"></i>
-
-                </button>
-
-
-                <img id="channelPhoto"
-                     src="/images/default-channel.png"
-                     class="channel-avatar"
-                     alt="Canal" />
-
+                <img id="currentUserPhoto"
+                     src="@currentUserPhoto"
+                     class="channel-sidebar-user-photo"
+                     alt="Perfil de @currentUserName"
+                     onerror="this.onerror=null;this.src='/images/default-avatar.png';" />
 
                 <div>
 
-                    <h4 id="channelName"
-                        class="mb-0">
-                        Canal
-                    </h4>
+                    <strong id="currentUserName">
+                        @currentUserName
+                    </strong>
 
-                    <small id="channelMembers"
-                           class="text-muted">
-                        0 membros
+                    <small class="d-block text-muted">
+                        Canais
                     </small>
 
                 </div>
 
             </div>
 
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="btn btn-sm btn-outline-secondary"
+               title="Voltar para home">
 
-            <div class="d-flex gap-2">
+                <i class="bi bi-house"></i>
 
-                <button id="btnChannelMembers"
-                        class="btn btn-sm btn-outline-secondary"
-                        title="Membros">
+            </a>
 
-                    <i class="bi bi-people"></i>
+        </div>
 
-                </button>
+        <div class="channel-search p-2">
 
+            <div class="input-group">
 
-                <button id="btnChannelInvite"
-                        class="btn btn-sm btn-outline-primary"
-                        title="Convidar">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
 
-                    <i class="bi bi-person-plus"></i>
-
-                </button>
-
-
-                <button id="btnChannelSettings"
-                        class="btn btn-sm btn-outline-secondary"
-                        title="Configurações">
-
-                    <i class="bi bi-three-dots"></i>
-
-                </button>
+                <input id="channelSearchInput"
+                       type="text"
+                       class="form-control"
+                       placeholder="Pesquisar canais..."
+                       autocomplete="off" />
 
             </div>
 
-        </header>
+        </div>
 
+        <div class="p-2">
 
-        <!-- Descrição -->
-        <div class="channel-description">
+            <button id="btnNewChannel"
+                    type="button"
+                    class="btn btn-primary w-100">
 
-            <span id="channelDescription">
-                Descrição do canal
-            </span>
+                <i class="bi bi-plus-circle me-1"></i>
+
+                Criar canal
+
+            </button>
 
         </div>
 
+        <div class="channel-list-container">
 
-        <!-- =================================================
-             PUBLICAÇÕES
-             ================================================= -->
-        <div id="postsContainer"
-             class="posts-container">
+            <div class="px-3 py-2">
 
-            <!-- Posts inseridos pelo JS -->
+                <small class="text-uppercase text-muted fw-bold">
+                    Meus canais
+                </small>
+
+            </div>
+
+            <div id="myChannelsList"
+                 class="channel-list">
+            </div>
+
+            <div class="px-3 py-2 mt-2">
+
+                <small class="text-uppercase text-muted fw-bold">
+                    Descobrir canais
+                </small>
+
+            </div>
+
+            <div id="discoverChannelsList"
+                 class="channel-list">
+            </div>
 
         </div>
 
+        <div class="icons">
 
-        <!-- =================================================
-             CRIAR PUBLICAÇÃO
-             ================================================= -->
-        <div id="createPostBox"
-             class="create-post-box">
+            <ul class="nav nav-tabs"
+                id="sidebarTabs">
 
-            <div class="d-flex gap-2">
+                <li class="nav-item">
 
-                <img id="postAuthorPhoto"
-                     src="/images/default-avatar.png"
-                     class="avatar"
-                     alt="Perfil" />
+                    <a class="nav-link"
+                       asp-controller="Home"
+                       asp-action="Index"
+                       title="Mensagens">
 
+                        <i class="bi bi-chat-quote"></i>
 
-                <div class="post-input-area">
+                        <span id="messageBadge"
+                              class="badge bg-danger d-none">
+                            0
+                        </span>
 
-                    <textarea id="postContent"
-                              class="form-control"
-                              rows="2"
-                              placeholder="Publique algo no canal..."></textarea>
+                    </a>
 
+                </li>
 
-                    <div class="post-actions">
+                <li class="nav-item">
 
-                        <div class="d-flex gap-2">
+                    <a class="nav-link"
+                       asp-controller="Home"
+                       asp-action="Index"
+                       title="Notificações">
 
-                            <label class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-bell"></i>
 
-                                <i class="bi bi-image"></i>
+                        <span id="notifBadge"
+                              class="badge bg-danger d-none">
+                            0
+                        </span>
 
-                                Foto
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="nav-link"
+                       asp-controller="Home"
+                       asp-action="Index"
+                       title="Reuniões">
+
+                        <i class="bi bi-people-fill"></i>
+
+                        <span id="meetingBadge"
+                              class="badge bg-danger d-none">
+                            0
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="nav-link active"
+                       asp-controller="Home"
+                       asp-action="Channel"
+                       title="Canais">
+
+                        <i class="bi bi-broadcast"></i>
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+    </aside>
+
+    <main class="channel-main">
+
+        <section id="channelEmpty"
+                 class="channel-empty">
+
+            <div class="empty-icon">
+                <i class="bi bi-broadcast"></i>
+            </div>
+
+            <h3>
+                Bem-vindo aos canais
+            </h3>
+
+            <p class="text-muted">
+                Selecione um canal para visualizar as publicações.
+            </p>
+
+            <button id="btnEmptyCreateChannel"
+                    type="button"
+                    class="btn btn-primary">
+
+                <i class="bi bi-plus-circle me-1"></i>
+
+                Criar canal
+
+            </button>
+
+        </section>
+
+        <section id="channelView"
+                 class="channel-view d-none">
+
+            <header class="channel-header">
+
+                <div class="d-flex align-items-center gap-3">
+
+                    <button id="btnBackToChannels"
+                            type="button"
+                            class="btn btn-outline-secondary channel-back-btn"
+                            aria-label="Voltar aos canais">
+
+                        <i class="bi bi-arrow-left"></i>
+
+                    </button>
+
+                    <img id="channelPhoto"
+                         src="/images/default-avatar.png"
+                         class="channel-avatar"
+                         alt="Canal"
+                         onerror="this.onerror=null;this.src='/images/default-avatar.png';" />
+
+                    <div>
+
+                        <h4 id="channelName"
+                            class="mb-0">
+                            Canal
+                        </h4>
+
+                        <small id="channelMembers"
+                               class="text-muted">
+                            0 membros
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <div class="d-flex gap-2">
+
+                    <button id="btnChannelMembers"
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary btn-channel-members"
+                            title="Membros"
+                            data-channel-action="members">
+
+                        <i class="bi bi-people"></i>
+
+                    </button>
+
+                    <button id="btnChannelInvite"
+                            type="button"
+                            class="btn btn-sm btn-outline-primary channel-invite-btn"
+                            title="Convidar"
+                            data-channel-action="invite">
+
+                        <i class="bi bi-person-plus"></i>
+
+                    </button>
+
+                    <button id="btnChannelSettings"
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary channel-settings-btn"
+                            title="Configurações"
+                            data-channel-action="settings">
+
+                        <i class="bi bi-three-dots"></i>
+
+                    </button>
+
+                </div>
+
+            </header>
+
+            <div class="channel-description">
+
+                <span id="channelDescription">
+                    Descrição do canal
+                </span>
+
+            </div>
+
+            <div id="postsContainer"
+                 class="posts-container">
+            </div>
+
+            <div id="createPostBox"
+                 class="create-post-box"
+                 data-channel-permission="publish">
+
+                <div class="d-flex gap-2">
+
+                    <img id="postAuthorPhoto"
+                         src="@currentUserPhoto"
+                         class="avatar"
+                         alt="Perfil"
+                         onerror="this.onerror=null;this.src='/images/default-avatar.png';" />
+
+                    <div class="post-input-area">
+
+                        <textarea id="postContent"
+                                  class="form-control"
+                                  rows="2"
+                                  maxlength="5000"
+                                  placeholder="Publique algo no canal..."></textarea>
+
+                        <div class="post-actions">
+
+                            <div class="d-flex gap-2">
+
+                                <label class="btn btn-sm btn-outline-secondary"
+                                       for="postImageInput">
+
+                                    <i class="bi bi-image"></i>
+
+                                    Foto
+
+                                </label>
 
                                 <input id="postImageInput"
                                        type="file"
                                        accept="image/*"
                                        hidden />
 
-                            </label>
+                                <button id="btnPostEmoji"
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary">
 
+                                    <i class="bi bi-emoji-smile"></i>
 
-                            <button id="btnPostEmoji"
+                                </button>
+
+                            </div>
+
+                            <button id="btnPublishPost"
                                     type="button"
-                                    class="btn btn-sm btn-outline-secondary">
+                                    class="btn btn-primary btn-sm"
+                                    data-channel-permission="publish-button">
 
-                                <i class="bi bi-emoji-smile"></i>
+                                <i class="bi bi-send me-1"></i>
+
+                                Publicar
 
                             </button>
 
                         </div>
 
+                    </div>
 
-                        <button id="btnPublishPost"
-                                class="btn btn-primary btn-sm">
+                </div>
 
-                            <i class="bi bi-send me-1"></i>
+            </div>
 
-                            Publicar
+        </section>
 
-                        </button>
+    </main>
+
+    <div class="modal fade"
+         id="newChannelModal"
+         tabindex="-1"
+         aria-labelledby="newChannelModalLabel"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 id="newChannelModalLabel"
+                        class="modal-title">
+
+                        <i class="bi bi-broadcast me-2"></i>
+
+                        Criar canal
+
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Fechar">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="text-center mb-3">
+
+                        <label for="newChannelPhoto"
+                               class="channel-photo-upload">
+
+                            <img id="newChannelPhotoPreview"
+                                 src="/images/default-channel.png"
+                                 alt="Pré-visualização do canal"
+                                 onerror="this.onerror=null;this.src='/images/default-channel.png';" />
+
+                            <span>
+                                <i class="bi bi-camera-fill"></i>
+                            </span>
+
+                        </label>
+
+                        <input id="newChannelPhoto"
+                               type="file"
+                               accept="image/*"
+                               hidden />
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label for="newChannelName"
+                               class="form-label">
+                            Nome do canal
+                        </label>
+
+                        <input id="newChannelName"
+                               type="text"
+                               class="form-control"
+                               maxlength="100"
+                               placeholder="Ex.: Tecnologia Angola"
+                               autocomplete="off" />
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label for="newChannelDescription"
+                               class="form-label">
+                            Descrição
+                        </label>
+
+                        <textarea id="newChannelDescription"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="500"
+                                  placeholder="Sobre o que é este canal?"></textarea>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Privacidade
+                        </label>
+
+                        <div class="privacy-option">
+
+                            <input type="radio"
+                                   class="form-check-input"
+                                   name="channelPrivacy"
+                                   id="channelPublic"
+                                   value="false"
+                                   checked />
+
+                            <label for="channelPublic">
+
+                                <strong>
+                                    <i class="bi bi-globe me-1"></i>
+                                    Público
+                                </strong>
+
+                                <small>
+                                    Qualquer pessoa pode encontrar o canal.
+                                </small>
+
+                            </label>
+
+                        </div>
+
+                        <div class="privacy-option">
+
+                            <input type="radio"
+                                   class="form-check-input"
+                                   name="channelPrivacy"
+                                   id="channelPrivate"
+                                   value="true" />
+
+                            <label for="channelPrivate">
+
+                                <strong>
+                                    <i class="bi bi-lock me-1"></i>
+                                    Privado
+                                </strong>
+
+                                <small>
+                                    Apenas pessoas convidadas podem participar.
+                                </small>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+
+                        Cancelar
+
+                    </button>
+
+                    <button id="btnCreateChannel"
+                            type="button"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-plus-circle me-1"></i>
+
+                        Criar canal
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="modal fade"
+         id="channelMembersModal"
+         tabindex="-1"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+
+                        <i class="bi bi-people me-2"></i>
+
+                        Membros do canal
+
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Fechar">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div id="channelMembersList"
+                         class="members-list">
+
+                        <div class="text-center text-muted py-4">
+                            Carregando membros...
+                        </div>
 
                     </div>
 
@@ -320,180 +720,128 @@ Layout = null;
 
         </div>
 
-    </section>
+    </div>
 
-</main>
+    <div class="modal fade"
+         id="channelInviteModal"
+         tabindex="-1"
+         aria-hidden="true">
 
+        <div class="modal-dialog modal-dialog-centered">
 
-<!-- =========================================================
-     MODAL - CRIAR CANAL
-     ========================================================= -->
-<div class="modal fade"
-     id="newChannelModal"
-     tabindex="-1">
+            <div class="modal-content">
 
-    <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-header">
 
-        <div class="modal-content">
+                    <h5 class="modal-title">
 
-            <div class="modal-header">
+                        <i class="bi bi-person-plus me-2"></i>
 
-                <h5 class="modal-title">
+                        Convidar para o canal
 
-                    <i class="bi bi-broadcast me-2"></i>
+                    </h5>
 
-                    Criar canal
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Fechar">
+                    </button>
 
-                </h5>
+                </div>
 
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
+                <div class="modal-body">
 
-            </div>
+                    <div class="input-group mb-3">
 
-
-            <div class="modal-body">
-
-                <!-- Foto -->
-                <div class="text-center mb-3">
-
-                    <label for="newChannelPhoto"
-                           class="channel-photo-upload">
-
-                        <img id="newChannelPhotoPreview"
-                             src="/images/default-channel.png"
-                             alt="Canal" />
-
-                        <span>
-
-                            <i class="bi bi-camera-fill"></i>
-
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
                         </span>
 
-                    </label>
+                        <input id="inviteSearchInput"
+                               type="text"
+                               class="form-control"
+                               placeholder="Pesquisar utilizador..."
+                               autocomplete="off" />
 
-                    <input id="newChannelPhoto"
-                           type="file"
-                           accept="image/*"
-                           hidden />
+                    </div>
 
-                </div>
+                    <div id="inviteUsersList"
+                         class="invite-users-list">
 
+                        <div class="text-center text-muted py-4">
+                            Pesquise um utilizador para convidar.
+                        </div>
 
-                <!-- Nome -->
-                <div class="mb-3">
-
-                    <label class="form-label">
-                        Nome do canal
-                    </label>
-
-                    <input id="newChannelName"
-                           type="text"
-                           class="form-control"
-                           maxlength="100"
-                           placeholder="Ex.: Tecnologia Angola" />
+                    </div>
 
                 </div>
 
+            </div>
 
-                <!-- Descrição -->
-                <div class="mb-3">
+        </div>
 
-                    <label class="form-label">
-                        Descrição
-                    </label>
+    </div>
 
-                    <textarea id="newChannelDescription"
+    <div class="modal fade"
+         id="sharePostModal"
+         tabindex="-1"
+         aria-labelledby="sharePostModalLabel"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 id="sharePostModalLabel"
+                        class="modal-title">
+
+                        <i class="bi bi-share me-2"></i>
+
+                        Partilhar publicação
+
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Fechar">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <textarea id="shareComment"
                               class="form-control"
                               rows="3"
-                              maxlength="500"
-                              placeholder="Sobre o que é este canal?"></textarea>
+                              maxlength="1000"
+                              placeholder="Adicionar um comentário..."></textarea>
 
                 </div>
 
+                <div class="modal-footer">
 
-                <!-- Privacidade -->
-                <div class="mb-3">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
 
-                    <label class="form-label">
-                        Privacidade
-                    </label>
+                        Cancelar
 
+                    </button>
 
-                    <div class="privacy-option">
+                    <button id="btnConfirmShare"
+                            type="button"
+                            class="btn btn-primary">
 
-                        <input type="radio"
-                               class="form-check-input"
-                               name="channelPrivacy"
-                               id="channelPublic"
-                               value="false"
-                               checked />
+                        <i class="bi bi-share me-1"></i>
 
-                        <label for="channelPublic">
+                        Partilhar
 
-                            <strong>
-                                <i class="bi bi-globe me-1"></i>
-                                Público
-                            </strong>
-
-                            <small>
-                                Qualquer pessoa pode encontrar o canal.
-                            </small>
-
-                        </label>
-
-                    </div>
-
-
-                    <div class="privacy-option">
-
-                        <input type="radio"
-                               class="form-check-input"
-                               name="channelPrivacy"
-                               id="channelPrivate"
-                               value="true" />
-
-                        <label for="channelPrivate">
-
-                            <strong>
-                                <i class="bi bi-lock me-1"></i>
-                                Privado
-                            </strong>
-
-                            <small>
-                                Apenas pessoas convidadas podem participar.
-                            </small>
-
-                        </label>
-
-                    </div>
+                    </button>
 
                 </div>
-
-            </div>
-
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-
-                    Cancelar
-
-                </button>
-
-                <button id="btnCreateChannel"
-                        type="button"
-                        class="btn btn-primary">
-
-                    <i class="bi bi-plus-circle me-1"></i>
-
-                    Criar canal
-
-                </button>
 
             </div>
 
@@ -501,42 +849,60 @@ Layout = null;
 
     </div>
 
-</div>
+    <div class="modal fade"
+         id="channelSettingsModal"
+         tabindex="-1"
+         aria-labelledby="channelSettingsModalLabel"
+         aria-hidden="true">
 
+        <div class="modal-dialog modal-dialog-centered">
 
-<!-- =========================================================
-     MODAL - MEMBROS
-     ========================================================= -->
-<div class="modal fade"
-     id="membersModal"
-     tabindex="-1">
+            <div class="modal-content">
 
-    <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-header">
 
-        <div class="modal-content">
+                    <h5 id="channelSettingsModalLabel"
+                        class="modal-title">
 
-            <div class="modal-header">
+                        <i class="bi bi-gear me-2"></i>
 
-                <h5 class="modal-title">
+                        Configurações do canal
 
-                    <i class="bi bi-people me-2"></i>
+                    </h5>
 
-                    Membros do canal
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Fechar">
+                    </button>
 
-                </h5>
+                </div>
 
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
+                <div class="modal-body">
 
-            </div>
+                    <div id="channelSettingsContent"></div>
 
+                </div>
 
-            <div class="modal-body">
+                <div class="modal-footer">
 
-                <div id="membersList"
-                     class="members-list">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+
+                        Fechar
+
+                    </button>
+
+                    <button id="btnSaveChannelSettings"
+                            type="button"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-check-lg me-1"></i>
+
+                        Guardar alterações
+
+                    </button>
 
                 </div>
 
@@ -548,138 +914,27 @@ Layout = null;
 
 </div>
 
+@section Scripts {
 
-<!-- =========================================================
-     MODAL - CONVIDAR
-     ========================================================= -->
-<div class="modal fade"
-     id="inviteModal"
-     tabindex="-1">
+    <script src="~/js/notification-badges.js"
+            asp-append-version="true"></script>
 
-    <div class="modal-dialog modal-dialog-centered">
+    <script src="~/js/channel/channel.js"
+            asp-append-version="true"></script>
 
-        <div class="modal-content">
+    <script src="~/js/channel/channel-create.js"
+            asp-append-version="true"></script>
 
-            <div class="modal-header">
+    <script src="~/js/channel/channel-posts.js"
+            asp-append-version="true"></script>
 
-                <h5 class="modal-title">
+    <script src="~/js/channel/channel-members.js"
+            asp-append-version="true"></script>
 
-                    <i class="bi bi-person-plus me-2"></i>
+    <script src="~/js/channel/channel-invites.js"
+            asp-append-version="true"></script>
 
-                    Convidar para o canal
+    <script src="~/js/channel/channel-settings.js"
+            asp-append-version="true"></script>
 
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-
-            <div class="modal-body">
-
-                <div class="input-group mb-3">
-
-                    <span class="input-group-text">
-
-                        <i class="bi bi-search"></i>
-
-                    </span>
-
-                    <input id="inviteSearchInput"
-                           class="form-control"
-                           placeholder="Pesquisar utilizador..." />
-
-                </div>
-
-
-                <div id="inviteUsersList"
-                     class="invite-users-list">
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- =========================================================
-     MODAL - PARTILHAR POST
-     ========================================================= -->
-<div class="modal fade"
-     id="sharePostModal"
-     tabindex="-1">
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-
-                    <i class="bi bi-share me-2"></i>
-
-                    Partilhar publicação
-
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-
-            <div class="modal-body">
-
-                <textarea id="shareComment"
-                          class="form-control"
-                          rows="3"
-                          placeholder="Adicionar um comentário..."></textarea>
-
-            </div>
-
-
-            <div class="modal-footer">
-
-                <button class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-
-                    Cancelar
-
-                </button>
-
-                <button id="btnConfirmShare"
-                        class="btn btn-primary">
-
-                    <i class="bi bi-share me-1"></i>
-
-                    Partilhar
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-```
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script src="~/js/channel.js"></script>
-
-</body>
-</html>
+}

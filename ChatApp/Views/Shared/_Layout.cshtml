@@ -3,16 +3,213 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>@ViewData["Title"] - ChatApp</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    @RenderSection("Styles", required: false)
 </head>
+
 <body>
+
     @RenderBody()
 
+    <div id="callOverlay"
+         class="call-overlay d-none"
+         aria-hidden="true">
+
+        <div class="call-video-layer">
+
+            <video id="remoteVideo"
+                   class="remote-video d-none"
+                   autoplay
+                   playsinline>
+            </video>
+
+            <div id="remoteVideoPlaceholder"
+                 class="remote-video-placeholder">
+
+                <div class="call-avatar-wrapper">
+
+                    <div class="audio-call-animation">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+
+                    <img id="callAvatar"
+                         class="call-avatar"
+                         src="/images/default-avatar.png"
+                         alt="Utilizador"
+                         onerror="this.onerror=null;this.src='/images/default-avatar.png';" />
+
+                </div>
+
+                <h2 id="callOverlayName">
+                    Utilizador
+                </h2>
+
+                <div id="callOverlayType"
+                     class="call-type">
+                    Chamada de áudio
+                </div>
+
+                <div id="callOverlayStatus"
+                     class="call-status">
+                    A chamar...
+                </div>
+
+            </div>
+
+            <video id="localVideo"
+                   class="local-video d-none"
+                   autoplay
+                   muted
+                   playsinline>
+            </video>
+
+        </div>
+
+        <div class="call-top-bar">
+
+            <div class="call-top-info">
+
+                <span id="callTopName">
+                    Utilizador
+                </span>
+
+                <span id="callTopStatus">
+                    A chamar...
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="call-controls">
+
+            <button id="btnToggleMic"
+                    type="button"
+                    class="call-control-button"
+                    aria-label="Microfone"
+                    title="Microfone">
+
+                <i class="bi bi-mic-fill"></i>
+
+            </button>
+
+            <button id="btnToggleCam"
+                    type="button"
+                    class="call-control-button"
+                    aria-label="Câmara"
+                    title="Câmara">
+
+                <i class="bi bi-camera-video-fill"></i>
+
+            </button>
+
+            <button id="btnHangup"
+                    type="button"
+                    class="call-control-button call-end-button"
+                    aria-label="Desligar"
+                    title="Desligar">
+
+                <i class="bi bi-telephone-x-fill"></i>
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="incomingCallToast"
+         class="incoming-call-overlay d-none"
+         aria-hidden="true">
+
+        <div class="incoming-call-card">
+
+            <div class="incoming-call-avatar-wrapper">
+
+                <div class="incoming-call-rings">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <img id="incomingCallerPhoto"
+                     class="incoming-call-avatar"
+                     src="/images/default-avatar.png"
+                     alt="Utilizador"
+                     onerror="this.onerror=null;this.src='/images/default-avatar.png';" />
+
+            </div>
+
+            <div class="incoming-call-info">
+
+                <span class="incoming-call-label">
+                    Chamada recebida
+                </span>
+
+                <h3 id="incomingCallerName">
+                    Utilizador
+                </h3>
+
+                <p id="incomingCallText">
+                    Está a ligar...
+                </p>
+
+            </div>
+
+            <div class="incoming-call-actions">
+
+                <button id="btnRejectCall"
+                        type="button"
+                        class="incoming-action incoming-reject"
+                        aria-label="Recusar"
+                        title="Recusar">
+
+                    <i class="bi bi-telephone-x-fill"></i>
+
+                </button>
+
+                <button id="btnAcceptCall"
+                        type="button"
+                        class="incoming-action incoming-accept"
+                        aria-label="Aceitar"
+                        title="Aceitar">
+
+                    <i class="bi bi-telephone-fill"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+
+    <!-- Preferências globais: idioma, fuso horário e formato da hora.
+         Deve carregar antes dos scripts específicos de cada página. -->
+    <script src="~/js/preferences.js" asp-append-version="true"></script>
+
+    <script src="~/js/localization.js" asp-append-version="true"></script>
+
+    <script src="~/js/call.js" asp-append-version="true"></script>
+
     @RenderSection("Scripts", required: false)
+
 </body>
 </html>

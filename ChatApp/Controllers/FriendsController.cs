@@ -2,6 +2,7 @@ using ChatApp.Data;
 using ChatApp.DTOs;
 using ChatApp.Models;
 using ChatApp.Services;
+using ChatApp.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Controllers;
 
-// Lista de amigos: pedidos, aceitação, remoção e pesquisa de utilizadores.
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
@@ -18,15 +18,26 @@ public class FriendsController : ControllerBase
     private readonly ApplicationDbContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly INotificationService _notifications;
+    private readonly IPrivacyService _privacy;
 
-    public FriendsController(ApplicationDbContext db, UserManager<ApplicationUser> userManager, INotificationService notifications)
+    public FriendsController(
+        ApplicationDbContext db,
+        UserManager<ApplicationUser> userManager,
+        INotificationService notifications,
+        IPrivacyService privacy)
     {
         _db = db;
         _userManager = userManager;
         _notifications = notifications;
+        _privacy = privacy;
     }
 
-    private string CurrentUserId => _userManager.GetUserId(User)!;
+    private string CurrentUserId =>
+        _userManager.GetUserId(User)!;
+
+    // ============================================================
+    // LISTAR AMIGOS
+    // ============================================================
 
     [HttpGet]
     public async Task<IActionResult> GetFriends()
@@ -34,129 +45,412 @@ public class FriendsController : ControllerBase
         var userId = CurrentUserId;
 
         var friendships = await _db.Friendships
-            .Where(f => f.Status == FriendshipStatus.Accepted && (f.RequesterId == userId || f.AddresseeId == userId))
+            .AsNoTracking()
+            .Where(f =>
+                f.Status == FriendshipStatus.Accepted &&
+                (
+                    f.RequesterId == userId ||
+                    f.AddresseeId == userId
+                ))
             .Include(f => f.Requester)
             .Include(f => f.Addressee)
             .ToListAsync();
 
-        var result = friendships.Select(f =>
+        var result = new List<FriendViewDto>();
+
+        foreach (var friendship in friendships)
         {
-            var friend = f.RequesterId == userId ? f.Addressee : f.Requester;
-            return new FriendViewDto
+            var friend =
+                friendship.RequesterId == userId
+                    ? friendship.Addressee
+                    : friendship.Requester;
+
+            if (friend == null)
+                continue;
+
+            // target = amigo
+            // viewer = utilizador autenticado
+            var canViewProfile =
+                await _privacy.CanViewProfileAsync(
+                    friend.Id,
+                    userId);
+
+            if (!canViewProfile)
+                continue;
+
+            var canViewOnline =
+                await _privacy.CanViewOnlineStatusAsync(
+                    friend.Id,
+                    userId);
+
+            var canViewLastSeen =
+                await _privacy.CanViewLastSeenAsync(
+                    friend.Id,
+                    userId);
+
+            result.Add(new FriendViewDto
             {
-                FriendshipId = f.Id,
+                FriendshipId = friendship.Id,
+
                 UserId = friend.Id,
-                FullName = friend.FullName,
-                ProfilePhotoUrl = friend.ProfilePhotoUrl,
-                IsOnline = friend.IsOnline,
-                LastSeenAt = friend.LastSeenAt,
-                Status = f.Status.ToString()
-            };
-        });
+
+                FullName =
+                    friend.FullName,
+
+                ProfilePhotoUrl =
+                    friend.ProfilePhotoUrl,
+
+                IsOnline =
+                    canViewOnline &&
+                    friend.IsOnline,
+
+                LastSeenAt =
+                    canViewLastSeen
+                        ? friend.LastSeenAt
+                        : null,
+
+                Status =
+                    friendship.Status.ToString()
+            });
+        }
 
         return Ok(result);
     }
+
+    // ============================================================
+    // PEDIDOS DE AMIZADE
+    // ============================================================
 
     [HttpGet("requests")]
     public async Task<IActionResult> GetPendingRequests()
     {
         var userId = CurrentUserId;
+
         var requests = await _db.Friendships
-            .Where(f => f.AddresseeId == userId && f.Status == FriendshipStatus.Pending)
+            .AsNoTracking()
+            .Where(f =>
+                f.AddresseeId == userId &&
+                f.Status == FriendshipStatus.Pending)
             .Include(f => f.Requester)
-            .Select(f => new FriendViewDto
-            {
-                FriendshipId = f.Id,
-                UserId = f.Requester.Id,
-                FullName = f.Requester.FullName,
-                ProfilePhotoUrl = f.Requester.ProfilePhotoUrl,
-                IsOnline = f.Requester.IsOnline,
-                Status = f.Status.ToString()
-            })
             .ToListAsync();
 
-        return Ok(requests);
+        var result = new List<FriendViewDto>();
+
+        foreach (var friendship in requests)
+        {
+            var requester = friendship.Requester;
+
+            if (requester == null)
+                continue;
+
+            var canViewProfile =
+                await _privacy.CanViewProfileAsync(
+                    requester.Id,
+                    userId);
+
+            var canViewOnline =
+                await _privacy.CanViewOnlineStatusAsync(
+                    requester.Id,
+                    userId);
+
+            var canViewLastSeen =
+                await _privacy.CanViewLastSeenAsync(
+                    requester.Id,
+                    userId);
+
+            result.Add(new FriendViewDto
+            {
+                FriendshipId = friendship.Id,
+
+                UserId = requester.Id,
+
+                FullName =
+                    canViewProfile
+                        ? requester.FullName
+                        : "Utilizador",
+
+                ProfilePhotoUrl =
+                    canViewProfile
+                        ? requester.ProfilePhotoUrl
+                        : null,
+
+                IsOnline =
+                    canViewOnline &&
+                    requester.IsOnline,
+
+                LastSeenAt =
+                    canViewLastSeen
+                        ? requester.LastSeenAt
+                        : null,
+
+                Status =
+                    friendship.Status.ToString()
+            });
+        }
+
+        return Ok(result);
     }
+
+    // ============================================================
+    // PESQUISAR UTILIZADORES
+    // ============================================================
 
     [HttpGet("search")]
-    public async Task<IActionResult> Search([FromQuery] string q)
+    public async Task<IActionResult> Search(
+        [FromQuery] string q)
     {
-        if (string.IsNullOrWhiteSpace(q)) return Ok(Array.Empty<object>());
+        if (string.IsNullOrWhiteSpace(q))
+            return Ok(Array.Empty<object>());
 
         var userId = CurrentUserId;
+
+        q = q.Trim();
+
         var users = await _db.Users
-            .Where(u => u.Id != userId && (u.FullName.Contains(q) || u.Email!.Contains(q)))
+            .AsNoTracking()
+            .Where(u =>
+                u.Id != userId &&
+                (
+                    u.FullName.Contains(q) ||
+                    (u.Email != null &&
+                     u.Email.Contains(q))
+                ))
             .Take(20)
-            .Select(u => new { u.Id, u.FullName, u.Email, u.ProfilePhotoUrl })
             .ToListAsync();
 
-        return Ok(users);
+        var result = new List<object>();
+
+        foreach (var user in users)
+        {
+            var canViewProfile =
+                await _privacy.CanViewProfileAsync(
+                    user.Id,
+                    userId);
+
+            var canViewOnline =
+                await _privacy.CanViewOnlineStatusAsync(
+                    user.Id,
+                    userId);
+
+            var canViewLastSeen =
+                await _privacy.CanViewLastSeenAsync(
+                    user.Id,
+                    userId);
+
+            if (!canViewProfile)
+                continue;
+
+            result.Add(new
+            {
+                id = user.Id,
+
+                fullName = user.FullName,
+
+                email = user.Email,
+
+                profilePhotoUrl =
+                    user.ProfilePhotoUrl,
+
+                isOnline =
+                    canViewOnline &&
+                    user.IsOnline,
+
+                lastSeenAt =
+                    canViewLastSeen
+                        ? user.LastSeenAt
+                        : null
+            });
+        }
+
+        return Ok(result);
     }
+
+    // ============================================================
+    // ENVIAR PEDIDO
+    // ============================================================
 
     [HttpPost("request")]
-    public async Task<IActionResult> SendRequest(FriendRequestDto dto)
+    public async Task<IActionResult> SendRequest(
+        FriendRequestDto dto)
     {
         var userId = CurrentUserId;
-        if (dto.AddresseeId == userId) return BadRequest("Não é possível adicionar-se a si próprio.");
 
-        var exists = await _db.Friendships.AnyAsync(f =>
-            (f.RequesterId == userId && f.AddresseeId == dto.AddresseeId) ||
-            (f.RequesterId == dto.AddresseeId && f.AddresseeId == userId));
+        if (string.IsNullOrWhiteSpace(dto.AddresseeId))
+            return BadRequest(
+                "Utilizador destinatário inválido.");
 
-        if (exists) return BadRequest("Já existe um pedido ou amizade entre estes utilizadores.");
+        if (dto.AddresseeId == userId)
+            return BadRequest(
+                "Não é possível adicionar-se a si próprio.");
 
-        var friendship = new Friendship { RequesterId = userId, AddresseeId = dto.AddresseeId };
+        var targetUser =
+            await _userManager.FindByIdAsync(
+                dto.AddresseeId);
+
+        if (targetUser == null)
+            return NotFound(
+                "Utilizador não encontrado.");
+
+        var canSend =
+            await _privacy.CanSendFriendRequestAsync(
+                userId,
+                dto.AddresseeId);
+
+        if (!canSend)
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                "Este utilizador não permite pedidos de amizade.");
+        }
+
+        var exists = await _db.Friendships
+            .AnyAsync(f =>
+                (f.RequesterId == userId &&
+                 f.AddresseeId == dto.AddresseeId)
+                ||
+                (f.RequesterId == dto.AddresseeId &&
+                 f.AddresseeId == userId));
+
+        if (exists)
+        {
+            return BadRequest(
+                "Já existe um pedido ou amizade entre estes utilizadores.");
+        }
+
+        var friendship = new Friendship
+        {
+            RequesterId = userId,
+            AddresseeId = dto.AddresseeId,
+            Status = FriendshipStatus.Pending
+        };
+
         _db.Friendships.Add(friendship);
+
         await _db.SaveChangesAsync();
 
-        var requester = await _db.Users.FindAsync(userId);
-        await _notifications.CreateAsync(dto.AddresseeId, NotificationType.FriendRequest,
-            "Novo pedido de amizade", $"{requester?.FullName} enviou-lhe um pedido de amizade.", userId);
+        var requester =
+            await _db.Users.FindAsync(userId);
 
-        return Ok(new { friendship.Id });
+        await _notifications.CreateAsync(
+            dto.AddresseeId,
+            NotificationType.FriendRequest,
+            "Novo pedido de amizade",
+            $"{requester?.FullName ?? "Um utilizador"} enviou-lhe um pedido de amizade.",
+            userId);
+
+        return Ok(new
+        {
+            friendship.Id
+        });
     }
+
+    // ============================================================
+    // ACEITAR
+    // ============================================================
 
     [HttpPost("{friendshipId:int}/accept")]
-    public async Task<IActionResult> Accept(int friendshipId)
+    public async Task<IActionResult> Accept(
+        int friendshipId)
     {
         var userId = CurrentUserId;
-        var friendship = await _db.Friendships.FirstOrDefaultAsync(f => f.Id == friendshipId && f.AddresseeId == userId);
-        if (friendship == null) return NotFound();
 
-        friendship.Status = FriendshipStatus.Accepted;
-        friendship.RespondedAt = DateTime.UtcNow;
+        var friendship =
+            await _db.Friendships
+                .FirstOrDefaultAsync(f =>
+                    f.Id == friendshipId &&
+                    f.AddresseeId == userId &&
+                    f.Status == FriendshipStatus.Pending);
+
+        if (friendship == null)
+            return NotFound();
+
+        friendship.Status =
+            FriendshipStatus.Accepted;
+
+        friendship.RespondedAt =
+            DateTime.UtcNow;
+
         await _db.SaveChangesAsync();
 
-        var addressee = await _db.Users.FindAsync(userId);
-        await _notifications.CreateAsync(friendship.RequesterId, NotificationType.FriendAccepted,
-            "Pedido de amizade aceite", $"{addressee?.FullName} aceitou o seu pedido de amizade.", userId);
+        var addressee =
+            await _db.Users.FindAsync(userId);
 
-        return Ok();
+        await _notifications.CreateAsync(
+            friendship.RequesterId,
+            NotificationType.FriendAccepted,
+            "Pedido de amizade aceite",
+            $"{addressee?.FullName ?? "Utilizador"} aceitou o seu pedido de amizade.",
+            userId);
+
+        return Ok(new
+        {
+            success = true
+        });
     }
+
+    // ============================================================
+    // REJEITAR
+    // ============================================================
 
     [HttpPost("{friendshipId:int}/reject")]
-    public async Task<IActionResult> Reject(int friendshipId)
+    public async Task<IActionResult> Reject(
+        int friendshipId)
     {
         var userId = CurrentUserId;
-        var friendship = await _db.Friendships.FirstOrDefaultAsync(f => f.Id == friendshipId && f.AddresseeId == userId);
-        if (friendship == null) return NotFound();
 
-        friendship.Status = FriendshipStatus.Rejected;
-        friendship.RespondedAt = DateTime.UtcNow;
+        var friendship =
+            await _db.Friendships
+                .FirstOrDefaultAsync(f =>
+                    f.Id == friendshipId &&
+                    f.AddresseeId == userId &&
+                    f.Status == FriendshipStatus.Pending);
+
+        if (friendship == null)
+            return NotFound();
+
+        friendship.Status =
+            FriendshipStatus.Rejected;
+
+        friendship.RespondedAt =
+            DateTime.UtcNow;
+
         await _db.SaveChangesAsync();
-        return Ok();
+
+        return Ok(new
+        {
+            success = true
+        });
     }
 
+    // ============================================================
+    // REMOVER AMIZADE
+    // ============================================================
+
     [HttpDelete("{friendshipId:int}")]
-    public async Task<IActionResult> Remove(int friendshipId)
+    public async Task<IActionResult> Remove(
+        int friendshipId)
     {
         var userId = CurrentUserId;
-        var friendship = await _db.Friendships.FirstOrDefaultAsync(f =>
-            f.Id == friendshipId && (f.RequesterId == userId || f.AddresseeId == userId));
-        if (friendship == null) return NotFound();
+
+        var friendship =
+            await _db.Friendships
+                .FirstOrDefaultAsync(f =>
+                    f.Id == friendshipId &&
+                    (
+                        f.RequesterId == userId ||
+                        f.AddresseeId == userId
+                    ));
+
+        if (friendship == null)
+            return NotFound();
 
         _db.Friendships.Remove(friendship);
+
         await _db.SaveChangesAsync();
-        return Ok();
+
+        return Ok(new
+        {
+            success = true
+        });
     }
 }
